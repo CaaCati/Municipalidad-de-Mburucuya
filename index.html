@@ -292,7 +292,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>💰 Municipalidad de Mburucuya</h1>
+            <h1>🏝 Municipalidad de Mburucuya</h1>
             
             <div class="config-section" id="configSection">
                 <div class="input-group">
@@ -482,7 +482,7 @@
 
             if (!out.ok) throw new Error(out.message || 'Error registrando pagos');
 
-            alert(`✅ ${out.message}\nSe registró en la hoja "Pagos_Hoy".`);
+            alert(`✅ ${out.message}\nSe registró en los pagos del día".`);
             await loadInvoices();
 
             invoices.forEach(inv => {
