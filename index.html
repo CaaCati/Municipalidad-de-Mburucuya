@@ -482,7 +482,7 @@
 
             if (!out.ok) throw new Error(out.message || 'Error registrando pagos');
 
-            alert(`✅ ${out.message}\nSe registró en los pagos del día".`);
+            alert(`✅ ${out.message}\nSe registró correctamente lo seleccionado".`);
             await loadInvoices();
 
             invoices.forEach(inv => {
