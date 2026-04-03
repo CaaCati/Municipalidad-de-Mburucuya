@@ -741,11 +741,15 @@
         </div>
 
         <div class="fin-tabs">
-          <button class="fin-tab active" onclick="switchFinTab('movimientos', this)">Movimientos</button>
+          <button class="fin-tab active" onclick="switchFinTab('saldos', this)">Saldos</button>
+          <button class="fin-tab" onclick="switchFinTab('movimientos', this)">Movimientos</button>
           <button class="fin-tab" onclick="switchFinTab('proveedores-fin', this)">Proveedores</button>
         </div>
 
-        <div class="fin-content active" id="ftab-movimientos">
+        <div class="fin-content active" id="ftab-saldos">
+          <div class="mov-list" id="finSaldosList"></div>
+        </div>
+        <div class="fin-content" id="ftab-movimientos">
           <div class="mov-list" id="finMovList"></div>
         </div>
         <div class="fin-content" id="ftab-proveedores-fin">
@@ -798,18 +802,27 @@
 
 <script>
 // ══════════════════════════════════════════════════════
-//  CONFIGURACIÓN — reemplazá con los IDs reales
+//  CONFIGURACIÓN
+//  → Reemplazá los valores entre comillas con los reales
 // ══════════════════════════════════════════════════════
-const PROV_SHEET_ID    = 'TU_SHEET_ID_PROVEEDORES';    // mismo sheet tiene Proveedores + Finanzas
-const PROV_SHEET_NAME  = 'Proveedores';
-const FIN_MOV_SHEET    = 'Movimientos';
-const FIN_SHEET_ID     = PROV_SHEET_ID;               // mismo sheet
-const CAJA_SHEET_ID    = 'TU_SHEET_ID_CAJA_CHICA';
+
+// Sheet principal (Proveedores + Pagos_Hoy + Saldos + Movimientos)
+const PROV_SHEET_ID   = '1_lZGb_guIKfkMszSoRigZYj6peTXL8xZCqoqKWnjCSc';
+const WEBAPP_URL      = 'https://script.google.com/macros/s/AKfycbwmKBhYBdZEuvDjeVKvwBcYOgd35PHYYwG88eK-4dToeGK0UWzURIOozl_1TLsVWhiW/exec';   // URL del Apps Script del sheet principal
+
+// Sheet separado de Caja Chica
+const CAJA_SHEET_ID   = '1RE5CUApibQVlyhO83riVE4EJJTc4CJcbGsrgE3amgEs';
+const CAJA_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby4_Fqd1v3Fs3APU_yKIzMLk13TFNYhJefzxKZfawxUYYdPib82dFY-mbxk-tflaDLfwA/exec';     // URL del Apps Script de Caja Chica (igual al de ustedes)
+
+// Nombres de hojas — sheet principal
+const PROV_SHEET_NAME = 'Proveedores';   // Col A=Proveedor, B=Monto, C=FechaEmision, D=UltimoPago, E=Pagado(checkbox), F=timestamp, G=Estado
+const SALDOS_SHEET    = 'Saldos';        // Col A=Banco, B=Referencia, C=SaldoActual  — fecha en D1
+const MOV_SHEET       = 'Movimientos';   // Col A=Fecha, B=Monto, C=Descripcion
+
+// Nombres de hojas — caja chica
 const CAJA_SALDO_SHEET = 'Saldo';
 const CAJA_MOV_SHEET   = 'Movimientos';
 const CAJA_AUTH_SHEET  = 'Autorizaciones';
-const WEBAPP_URL       = 'TU_APPS_SCRIPT_WEBAPP_URL';
-const CAJA_WEBAPP_URL  = 'TU_APPS_SCRIPT_CAJA_URL';
 
 // ══════════════════════════════════════════════════════
 //  ESTADO
@@ -891,9 +904,12 @@ async function loadProveedores() {
     const firstCell = (rows[0]?.c?.[0]?.v ?? '').toString().toLowerCase();
     const dataRows  = firstCell === 'columna 1' ? rows.slice(1) : rows;
 
+    // La fecha de última actualización la guarda el onEdit en F2 de la hoja Proveedores
+    // gviz devuelve F2 como fila índice 1 (si hay encabezado) → la buscamos en todas las filas
     let lastUpdate = null;
-    for (let i = rows.length - 1; i >= 0; i--) {
-      if (rows[i]?.c?.[5]?.v) { lastUpdate = rows[i].c[5].v; break; }
+    for (let i = 0; i < rows.length; i++) {
+      const v = rows[i]?.c?.[5]?.v;
+      if (v) { lastUpdate = v; break; }
     }
 
     invoices = dataRows
@@ -979,9 +995,9 @@ function updateProvStats() {
 async function registrarPagos() {
   const items = [];
   invoices.forEach(inv => {
-    if (inv.selected) items.push({sheetRow:inv.sheetRow, supplier:inv.supplier, tipo:'COMPLETO', monto:inv.amount});
+    if (inv.selected) items.push({sheetRow:inv.sheetRow, proveedor:inv.supplier, tipo:'COMPLETO', monto:inv.amount});
     else if (inv.partial && inv.partialAmount > 0)
-      items.push({sheetRow:inv.sheetRow, supplier:inv.supplier, tipo:'PARCIAL', monto:inv.partialAmount});
+      items.push({sheetRow:inv.sheetRow, proveedor:inv.supplier, tipo:'PARCIAL', monto:inv.partialAmount});
   });
   if (!items.length) { alert('⚠️ No hay pagos seleccionados.'); return; }
   const btn = document.getElementById('btnRegister');
@@ -998,49 +1014,76 @@ async function registrarPagos() {
 
 // ══════════════════════════════════════════════════════
 //  MÓDULO FINANZAS
+//  Sheet principal — hojas: Saldos (A=Banco, B=Ref, C=Saldo; fecha en D1)
+//                           Movimientos (A=Fecha, B=Monto, C=Descripcion)
+//                           Proveedores (para mostrar deuda total)
 // ══════════════════════════════════════════════════════
 async function loadFinanzas() {
   document.getElementById('fin-loading').style.display = 'block';
   document.getElementById('fin-content').style.display = 'none';
   document.getElementById('fin-error').style.display   = 'none';
   try {
-    // Movimientos y Proveedores viven en el mismo sheet que proveedores
-    const [movJson, provJson] = await Promise.all([
-      fetchSheet(FIN_SHEET_ID, FIN_MOV_SHEET),
-      fetchSheet(FIN_SHEET_ID, PROV_SHEET_NAME)
+    const [saldosJson, movJson, provJson] = await Promise.all([
+      fetchSheet(PROV_SHEET_ID, SALDOS_SHEET),
+      fetchSheet(PROV_SHEET_ID, MOV_SHEET),
+      fetchSheet(PROV_SHEET_ID, PROV_SHEET_NAME)
     ]);
 
-    // Movimientos
-    let ingresos = 0, egresos = 0;
-    const movRows = movJson.table.rows;
-    let movHTML = '';
-    movRows.forEach(r => {
-      const fecha = r.c?.[0]?.f || r.c?.[0]?.v || '';
-      const tipo  = (r.c?.[1]?.v || '').toString().trim();
-      const desc  = (r.c?.[2]?.v || '').toString().trim();
-      const monto = parseFloat(r.c?.[3]?.v || 0);
-      if (!desc && !monto) return;
-      const isIng = tipo.toLowerCase() === 'ingreso';
-      if (isIng) ingresos += monto; else egresos += monto;
-      movHTML += `
+    // ── Saldos bancarios (A=Banco, B=Referencia, C=Saldo) ──
+    // D1 tiene el timestamp → gviz lo devuelve en rows[0].c[3]
+    const saldosRows = saldosJson.table.rows;
+    let totalSaldos = 0;
+    let fechaSaldos = null;
+    let saldosHTML  = '';
+
+    saldosRows.forEach((r, i) => {
+      const banco = (r.c?.[0]?.v || '').toString().trim();
+      const ref   = (r.c?.[1]?.v || '').toString().trim();
+      const saldo = parseFloat(r.c?.[2]?.v || 0);
+      // D1 es la celda del timestamp — puede venir en cualquier fila col índice 3
+      if (i === 0 && r.c?.[3]?.v) fechaSaldos = r.c[3].v;
+      if (!banco) return;
+      totalSaldos += saldo;
+      saldosHTML += `
         <div class="mov-item">
           <div class="mov-row">
-            <div class="mov-desc">${desc||'—'}</div>
-            <div class="mov-amount" style="color:${isIng?'var(--green)':'var(--red)'}">
-              ${isIng?'+':'−'}${fmt(monto)}
-            </div>
+            <div class="mov-desc">🏦 ${banco}${ref ? ' <span style="font-size:11px;color:var(--muted)">· '+ref+'</span>' : ''}</div>
+            <div class="mov-amount" style="color:var(--green);font-size:16px">${fmt(saldo)}</div>
           </div>
-          <div class="mov-date">📅 ${fecha||'—'} · <span style="font-weight:600">${tipo}</span></div>
         </div>`;
     });
 
-    // Proveedores en la pestaña finanzas
+    // ── Movimientos (A=Fecha, B=Monto, C=Descripcion) ──
+    // Monto positivo = ingreso, negativo = egreso
+    const movRows = movJson.table.rows;
+    let ingresos = 0, egresos = 0;
+    let movHTML = '';
+    movRows.forEach(r => {
+      const fecha = r.c?.[0]?.f || r.c?.[0]?.v || '';
+      const monto = parseFloat(r.c?.[1]?.v || 0);
+      const desc  = (r.c?.[2]?.v || '').toString().trim();
+      if (!desc && monto === 0) return;
+      const isIng = monto >= 0;
+      if (isIng) ingresos += monto; else egresos += Math.abs(monto);
+      movHTML += `
+        <div class="mov-item">
+          <div class="mov-row">
+            <div class="mov-desc">${desc || '—'}</div>
+            <div class="mov-amount" style="color:${isIng?'var(--green)':'var(--red)'}">
+              ${isIng?'+':'−'}${fmt(Math.abs(monto))}
+            </div>
+          </div>
+          <div class="mov-date">📅 ${fecha || '—'}</div>
+        </div>`;
+    });
+
+    // ── Proveedores pendientes (para mostrar en pestaña) ──
     const provRows = provJson.table.rows;
     const firstCell = (provRows[0]?.c?.[0]?.v ?? '').toString().toLowerCase();
     const dataRows  = firstCell === 'columna 1' ? provRows.slice(1) : provRows;
     let provHTML = '';
     dataRows.forEach(r => {
-      const name  = (r.c?.[0]?.v || '').toString();
+      const name  = (r.c?.[0]?.v || '').toString().trim();
       const monto = parseFloat(r.c?.[1]?.v || 0);
       const paid  = r.c?.[4]?.v === true;
       if (!name) return;
@@ -1048,18 +1091,24 @@ async function loadFinanzas() {
         <div class="mov-item">
           <div class="mov-row">
             <div class="mov-desc">${name}</div>
-            <div class="mov-amount" style="color:${paid?'var(--green)':'var(--red)'}">${fmt(monto)}</div>
+            <div class="mov-amount" style="color:${paid?'var(--green)':'var(--red)'};font-size:15px">${fmt(monto)}</div>
           </div>
           <div class="mov-date">${paid?'✅ Pagado':'⏳ Pendiente'}</div>
         </div>`;
     });
 
-    document.getElementById('finBalance').textContent  = fmt(ingresos - egresos);
-    document.getElementById('finFecha').textContent    = 'Balance: ingresos − egresos';
+    // ── Actualizar UI ──
+    const fd = gvizDate(fechaSaldos);
+    document.getElementById('finBalance').textContent  = fmt(totalSaldos);
+    document.getElementById('finFecha').textContent    = fd
+      ? 'Actualizado: ' + fd.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})
+      : 'Saldo total en cuentas bancarias';
     document.getElementById('finIngresos').textContent = fmt(ingresos);
     document.getElementById('finEgresos').textContent  = fmt(egresos);
-    document.getElementById('finMovList').innerHTML    = movHTML  || '<div class="empty-msg">Sin movimientos</div>';
-    document.getElementById('finProvList').innerHTML   = provHTML || '<div class="empty-msg">Sin proveedores</div>';
+    document.getElementById('finMovList').innerHTML    = movHTML  || '<div class="empty-msg">Sin movimientos registrados</div>';
+    document.getElementById('finProvList').innerHTML   = provHTML || '<div class="empty-msg">Sin proveedores registrados</div>';
+    // Saldos bancarios van en una 3ra pestaña
+    document.getElementById('finSaldosList').innerHTML = saldosHTML || '<div class="empty-msg">Sin saldos registrados</div>';
     document.getElementById('fin-content').style.display = 'block';
   } catch(e) {
     document.getElementById('fin-error').textContent = '❌ No se pudo cargar. Verificá que la hoja sea pública.';
