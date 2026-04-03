@@ -1,707 +1,1214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Municipalidad de Mburucuya</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Municipalidad de Mburucuyá · Sistema de Gestión</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:    #0d1f3c;
+      --navy2:   #162d52;
+      --gold:    #c9a84c;
+      --gold2:   #e8c96e;
+      --cream:   #f5f0e8;
+      --white:   #ffffff;
+      --muted:   #8a9ab5;
+      --green:   #1a7a5e;
+      --green2:  #23a67e;
+      --red:     #b83232;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #4DD0E1 0%, #81C784 50%, #FFD54F 100%);
-            min-height: 100vh;
-            padding: 15px;
-        }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-        .header {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(77,208,225,0.3);
-        }
+    /* ─── SPLASH ─────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    #splash.out {
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+    }
 
-        .config-section {
-            display: none;
-        }
+    .splash-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .splash-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201,168,76,.12);
+      animation: pulse-ring 4s ease-in-out infinite;
+    }
+    .splash-ring:nth-child(1){ width:340px;height:340px;top:50%;left:50%;transform:translate(-50%,-50%); animation-delay:0s; }
+    .splash-ring:nth-child(2){ width:520px;height:520px;top:50%;left:50%;transform:translate(-50%,-50%); animation-delay:.6s; }
+    .splash-ring:nth-child(3){ width:700px;height:700px;top:50%;left:50%;transform:translate(-50%,-50%); animation-delay:1.2s; }
+    @keyframes pulse-ring {
+      0%,100%{ opacity:.3; }
+      50%{ opacity:.08; }
+    }
 
-        h1 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
+    .splash-logo-wrap {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      margin-bottom: 28px;
+      animation: logo-in .8s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes logo-in {
+      from{ opacity:0; transform:scale(.7) translateY(20px); }
+      to  { opacity:1; transform:scale(1) translateY(0); }
+    }
+    .splash-logo-wrap::before {
+      content:'';
+      position:absolute;
+      inset:-8px;
+      border-radius:50%;
+      background: conic-gradient(from 0deg, var(--gold), var(--gold2), transparent 60%, var(--gold));
+      animation: spin-border 6s linear infinite;
+    }
+    @keyframes spin-border { to{ transform:rotate(360deg); } }
+    .splash-logo-inner {
+      position:absolute;
+      inset:4px;
+      border-radius:50%;
+      background: var(--navy2);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .splash-logo-inner img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
 
-        .config-section {
-            background: #E0F7FA;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
+    .splash-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(22px, 5vw, 32px);
+      color: var(--white);
+      text-align: center;
+      letter-spacing: .5px;
+      animation: fade-up .7s .2s cubic-bezier(.16,1,.3,1) both;
+    }
+    .splash-sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--gold);
+      text-align: center;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      animation: fade-up .7s .35s cubic-bezier(.16,1,.3,1) both;
+    }
+    .splash-divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 20px auto;
+      animation: fade-up .7s .5s cubic-bezier(.16,1,.3,1) both;
+    }
+    .splash-tagline {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      animation: fade-up .7s .6s cubic-bezier(.16,1,.3,1) both;
+    }
 
-        .input-group {
-            margin-bottom: 10px;
-        }
+    .splash-modules {
+      display: flex;
+      gap: 10px;
+      margin-top: 40px;
+      animation: fade-up .7s .75s cubic-bezier(.16,1,.3,1) both;
+    }
+    .splash-pip {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--navy2);
+      border: 1.5px solid var(--gold);
+      transition: background .3s;
+    }
+    .splash-pip.on { background: var(--gold); }
 
-        label {
-            display: block;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
+    .btn-ingresar {
+      margin-top: 36px;
+      padding: 14px 48px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+      color: var(--navy);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: .5px;
+      box-shadow: 0 8px 32px rgba(201,168,76,.35);
+      transition: transform .2s, box-shadow .2s;
+      animation: fade-up .7s .9s cubic-bezier(.16,1,.3,1) both;
+      width: auto;
+    }
+    .btn-ingresar:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(201,168,76,.5);
+    }
+    .btn-ingresar:active { transform: translateY(0); }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #B2EBF2;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
+    @keyframes fade-up {
+      from{ opacity:0; transform:translateY(18px); }
+      to  { opacity:1; transform:translateY(0); }
+    }
 
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #4DD0E1;
-        }
+    /* ─── MAIN APP ────────────────────────────── */
+    #app {
+      display: none;
+      min-height: 100vh;
+      background: var(--cream);
+    }
+    #app.visible { display: block; }
 
-        .help-text {
-            font-size: 11px;
-            color: #999;
-            margin-top: 3px;
-        }
+    /* Top bar */
+    .topbar {
+      background: var(--navy);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,.3);
+    }
+    .topbar-logo {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--gold);
+      flex-shrink: 0;
+      background: var(--navy2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-logo img { width: 85%; height: 85%; object-fit: contain; }
+    .topbar-text {}
+    .topbar-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .topbar-sys {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .topbar-back {
+      margin-left: auto;
+      background: none;
+      border: 1.5px solid rgba(201,168,76,.4);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      width: auto;
+      transition: all .2s;
+    }
+    .topbar-back:hover {
+      background: rgba(201,168,76,.1);
+      border-color: var(--gold);
+    }
 
-        button {
-            background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s;
-        }
+    /* Module selector */
+    #module-selector {
+      padding: 24px 16px 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
 
-        button:hover {
-            background: linear-gradient(135deg, #26C6DA 0%, #00ACC1 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(77,208,225,0.3);
-        }
+    .selector-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .selector-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      color: var(--navy);
+      font-weight: 700;
+    }
+    .selector-header p {
+      font-size: 13px;
+      color: #6b7a8d;
+      margin-top: 6px;
+    }
 
-        button:disabled {
-            background: #B2EBF2;
-            cursor: not-allowed;
-            transform: none;
-        }
+    .module-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
+    .module-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 20px 20px 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      box-shadow: 0 2px 12px rgba(13,31,60,.07);
+      transition: all .25s cubic-bezier(.16,1,.3,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .module-card::before {
+      content:'';
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:5px;
+      border-radius:16px 0 0 16px;
+    }
+    .module-card.proveedores::before { background: linear-gradient(180deg, #2563eb, #1e40af); }
+    .module-card.finanzas::before    { background: linear-gradient(180deg, var(--green), var(--green2)); }
+    .module-card.caja::before        { background: linear-gradient(180deg, var(--red), #e05252); }
 
-        .stat-card {
-            background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-        }
+    .module-card:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 12px 32px rgba(13,31,60,.14);
+    }
+    .module-card.proveedores:hover { border-color: #2563eb33; }
+    .module-card.finanzas:hover    { border-color: #1a7a5e33; }
+    .module-card.caja:hover        { border-color: #b8323233; }
 
-        .stat-card.total {
-            background: linear-gradient(135deg, #5C6BC0 0%, #3F51B5 100%);
-            grid-column: 1 / -1;
-        }
+    .card-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .module-card.proveedores .card-icon { background: #eff6ff; }
+    .module-card.finanzas    .card-icon { background: #f0fff9; }
+    .module-card.caja        .card-icon { background: #fff5f5; }
 
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
+    .card-body { flex: 1; }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .card-desc {
+      font-size: 12px;
+      color: #6b7a8d;
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+    .card-arrow {
+      font-size: 18px;
+      color: var(--muted);
+      transition: transform .25s;
+    }
+    .module-card:hover .card-arrow { transform: translateX(5px); }
 
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-        }
+    .card-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 5px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .module-card.proveedores .card-tag { background: #dbeafe; color: #1d4ed8; }
+    .module-card.finanzas    .card-tag { background: #d1fae5; color: #065f46; }
+    .module-card.caja        .card-tag { background: #fee2e2; color: #991b1b; }
 
-        .invoices-container {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(77,208,225,0.3);
-        }
+    /* Content frames */
+    .content-frame {
+      display: none;
+    }
+    .content-frame.active {
+      display: block;
+    }
 
-        .invoice-item {
-            padding: 15px;
-            border-bottom: 1px solid #B2EBF2;
-            transition: background 0.2s;
-        }
+    .frame-header {
+      background: var(--white);
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #e8e4dc;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .frame-back-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      width: auto;
+      padding: 0;
+      line-height: 1;
+      color: var(--navy);
+      transition: transform .2s;
+    }
+    .frame-back-btn:hover { transform: translateX(-4px); }
+    .frame-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--navy);
+      font-weight: 700;
+    }
 
-        .invoice-item:last-child {
-            border-bottom: none;
-        }
+    .frame-body {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
 
-        .invoice-item.selected {
-            background: linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%);
-        }
+    /* ─── PROVEEDORES / FACTURAS ─────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-box {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(13,31,60,.07);
+    }
+    .stat-box.full { grid-column: 1/-1; }
+    .stat-box.accent-blue  { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; }
+    .stat-box.accent-green { background: linear-gradient(135deg,var(--green),var(--green2)); color:#fff; }
+    .stat-lbl { font-size: 11px; opacity:.85; margin-bottom:4px; font-weight:500; }
+    .stat-val { font-size: 22px; font-weight:700; }
+    .stat-sub { font-size: 10px; opacity:.7; margin-top:2px; }
 
-        .invoice-item.paid {
-            opacity: 0.5;
-            background: #f5f5f5;
-        }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 18px 0 8px;
+    }
 
-        .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+    .invoices-list {
+      background: var(--white);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(13,31,60,.07);
+    }
 
-        .invoice-supplier {
-            font-weight: 600;
-            color: #333;
-            font-size: 16px;
-        }
+    .invoice-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0ece4;
+      transition: background .2s;
+    }
+    .invoice-item:last-child { border-bottom: none; }
+    .invoice-item.paid { opacity: .45; background: #fafafa; }
+    .invoice-item.selected { background: #eff6ff; }
 
-        .invoice-badge {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
+    .inv-row1 { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+    .inv-supplier { font-weight: 600; font-size: 15px; color: var(--navy); }
+    .inv-badge {
+      font-size: 10px; font-weight:700; padding:3px 8px; border-radius:10px;
+      text-transform:uppercase; letter-spacing:.4px;
+    }
+    .badge-pending { background:#fef3c7; color:#92400e; }
+    .badge-paid    { background:#d1fae5; color:#065f46; }
 
-        .badge-pending {
-            background: linear-gradient(135deg, #FFD54F 0%, #FFC107 100%);
-            color: #333333;
-        }
+    .inv-amount { font-size: 19px; font-weight:700; color:#1d4ed8; margin-bottom:6px; }
+    .inv-dates  { font-size: 12px; color:#8a9ab5; display:flex; gap:14px; }
 
-        .badge-paid {
-            background: linear-gradient(135deg, #81C784 0%, #66BB6A 100%);
-            color: white;
-        }
+    .inv-actions { display:flex; gap:8px; margin-top:10px; }
+    .btn-inv {
+      flex:1; padding:9px; border-radius:8px; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all .2s; width:auto;
+      border: 2px solid #2563eb; background:white; color:#2563eb;
+    }
+    .btn-inv.active { background:#2563eb; color:white; }
+    .btn-inv:disabled { opacity:.3; cursor:not-allowed; }
 
-        .invoice-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: #666;
-        }
+    .partial-input {
+      width:100%; margin-top:8px; padding:9px 12px;
+      border:2px solid #2563eb; border-radius:8px; font-size:14px;
+      outline:none; transition:box-shadow .2s;
+    }
+    .partial-input:focus { box-shadow:0 0 0 3px rgba(37,99,235,.15); }
 
-        .invoice-amount {
-            font-size: 20px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
+    .register-bar {
+      position: sticky; bottom: 0;
+      background: var(--white);
+      border-top: 1px solid #e8e4dc;
+      padding: 12px 16px;
+      margin: 0 -16px;
+    }
+    .btn-register {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background: linear-gradient(135deg,#2563eb,#1e40af);
+      color:white; font-size:15px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 16px rgba(37,99,235,.35);
+      transition:all .2s;
+    }
+    .btn-register:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(37,99,235,.45); }
+    .btn-register:disabled { opacity:.5; cursor:not-allowed; transform:none; }
 
-        .invoice-actions {
-            display: flex;
-            gap: 8px;
-        }
+    /* ─── FINANZAS ────────────────────────────── */
+    .fin-tabs {
+      display:flex; gap:8px; margin-bottom:14px;
+    }
+    .fin-tab {
+      flex:1; padding:9px; border:none; background:white; border-radius:10px;
+      font-size:13px; font-weight:600; color:#8a9ab5; cursor:pointer;
+      border-bottom:2px solid transparent; box-shadow:0 1px 4px rgba(0,0,0,.06);
+      transition:all .2s; width:auto;
+    }
+    .fin-tab.active { color:var(--green); border-color:var(--green); }
 
-        .btn-mark {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #26C6DA;
-            background: white;
-            color: #4DD0E1;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .fin-content { display:none; }
+    .fin-content.active { display:block; }
 
-        .btn-mark.active {
-            background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
-            color: white;
-            border-color: #4DD0E1;
-        }
+    .finanzas-stat {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      border-radius: 14px; padding:18px; color:white; margin-bottom:14px;
+    }
+    .finanzas-stat .s-lbl { font-size:12px; opacity:.85; margin-bottom:4px; }
+    .finanzas-stat .s-val { font-size:30px; font-weight:700; }
+    .finanzas-stat .s-sub { font-size:11px; opacity:.7; margin-top:4px; }
 
-        .btn-mark:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
+    .mov-list { background:white; border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(13,31,60,.07); }
+    .mov-item { padding:12px 16px; border-bottom:1px solid #f0ece4; }
+    .mov-item:last-child { border-bottom:none; }
+    .mov-row { display:flex; justify-content:space-between; align-items:center; }
+    .mov-desc { font-size:14px; font-weight:600; color:var(--navy); }
+    .mov-amount { font-size:15px; font-weight:700; }
+    .mov-date { font-size:11px; color:var(--muted); margin-top:2px; }
 
-        .partial-input {
-            width: 100%;
-            padding: 8px;
-            border: 2px solid #26C6DA;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-top: 8px;
-        }
+    /* ─── CAJA CHICA ──────────────────────────── */
+    .caja-stat {
+      background: linear-gradient(135deg, #b83232, #e05252);
+      border-radius: 14px; padding:18px; color:white; margin-bottom:14px;
+    }
+    .caja-stat .s-lbl { font-size:12px; opacity:.85; margin-bottom:4px; }
+    .caja-stat .s-val { font-size:30px; font-weight:700; }
+    .caja-stat .s-sub { font-size:11px; opacity:.7; margin-top:4px; }
 
-        .partial-input:focus {
-            outline: none;
-            border-color: #4DD0E1;
-        }
+    .auth-item {
+      padding:14px 16px; border-bottom:1px solid #f0ece4;
+      background:white; transition:background .2s;
+    }
+    .auth-item.autorizado { opacity:.45; background:#fafafa; }
+    .auth-item.selected-auth { background:#fff5f5; }
+    .auth-beneficiary { font-size:15px; font-weight:600; color:var(--navy); }
+    .auth-concepto { font-size:12px; color:var(--muted); margin-top:2px; }
+    .auth-amount { font-size:18px; font-weight:700; color:var(--red); margin:6px 0; }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
+    .btn-auth {
+      flex:1; padding:9px; border-radius:8px; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all .2s; width:auto;
+      border:2px solid var(--red); background:white; color:var(--red);
+    }
+    .btn-auth.active { background:var(--red); color:white; }
+    .btn-auth:disabled { opacity:.3; cursor:not-allowed; }
 
-        .error {
-            background: linear-gradient(135deg, #FFCCBC 0%, #FFAB91 100%);
-            color: #D84315;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
+    .btn-auth-register {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background: linear-gradient(135deg, #b83232, #e05252);
+      color:white; font-size:15px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 16px rgba(184,50,50,.35); transition:all .2s;
+    }
+    .btn-auth-register:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(184,50,50,.45); }
+    .btn-auth-register:disabled { opacity:.5; cursor:not-allowed; transform:none; }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
+    .total-bar {
+      background: var(--navy);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display:flex; justify-content:space-between; align-items:center;
+      color:white; margin-bottom:10px;
+    }
+    .total-bar-lbl { font-size:12px; opacity:.8; }
+    .total-bar-val { font-size:20px; font-weight:700; }
 
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
+    /* Loading / error */
+    .loading-msg {
+      text-align:center; padding:32px; color:var(--muted); font-size:14px;
+    }
+    .loading-dot {
+      display:inline-block; width:6px;height:6px;background:var(--muted);
+      border-radius:50%; margin:0 2px; animation:blink 1.2s infinite;
+    }
+    .loading-dot:nth-child(2){ animation-delay:.2s; }
+    .loading-dot:nth-child(3){ animation-delay:.4s; }
+    @keyframes blink{ 0%,80%,100%{ opacity:.2; } 40%{ opacity:1; } }
 
-        @media (max-width: 600px) {
-            .stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .stat-card.total {
-                grid-column: 1;
-            }
-        }
-    </style>
+    .error-msg {
+      background:#fff5f5; border:1px solid #fca5a5; color:#991b1b;
+      border-radius:10px; padding:12px 16px; font-size:13px; margin:8px 0;
+    }
+    .empty-msg { text-align:center; padding:28px; color:var(--muted); font-size:13px; }
+
+    /* ─── RESPONSIVENESS ─────────────────────── */
+    @media(max-width:480px){
+      .stats-row { grid-template-columns:1fr; }
+      .stats-row .stat-box.full { grid-column:auto; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏝 Municipalidad de Mburucuya</h1>
-            
-            <div class="config-section" id="configSection">
-                <div class="input-group">
-                    <label>ID de Google Sheet</label>
-                    <input type="text" id="sheetId" placeholder="Ejemplo: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms">
-                    <div class="help-text">Está en la URL después de /d/</div>
-                </div>
-                
-                <div class="input-group">
-                    <label>Nombre de la Hoja</label>
-                    <input type="text" id="sheetName" placeholder="Hoja 1" value="Hoja 1">
-                </div>
-                
-                <button onclick="loadInvoices()" id="loadBtn">Cargar Facturas</button>
-            </div>
 
-            <div id="stats" style="display: none;">
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-label">Deuda Total</div>
-                        <div class="stat-value" id="totalDebt">$0</div>
-                    </div>
-                    
-                    <div class="stat-card total">
-                        <div class="stat-label">💳 Total a Pagar Hoy</div>
-                        <div class="stat-value" id="todayTotal">$0</div>
-                    </div>
+<!-- ════════════════════ SPLASH ════════════════════ -->
+<div id="splash">
+  <div class="splash-bg">
+    <div class="splash-ring"></div>
+    <div class="splash-ring"></div>
+    <div class="splash-ring"></div>
+  </div>
 
-                    <button id="registerBtn" onclick="registerTodayPayments()" style="margin-top:10px;">
-                      🧾 Registrar pago de hoy
-                    </button>
+  <div class="splash-logo-wrap">
+    <div class="splash-logo-inner">
+      <img src="logo.png" alt="Logo Municipalidad">
+    </div>
+  </div>
 
-                    <div id="sheetUpdate" style="
-                         text-align:center;
-                         margin-top:8px;
-                         font-size:13px;
-                         color:#D84315;
-                         opacity:0.85;
-                    ">
-                         Última actualización: —
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="splash-title">Municipalidad de Mburucuyá</div>
+  <div class="splash-sub">Sistema de Gestión</div>
+  <div class="splash-divider"></div>
+  <div class="splash-tagline">Gestión financiera municipal · Corrientes, Argentina</div>
 
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="loading" class="loading" style="display: none;">Cargando facturas...</div>
-        
-        <div class="invoices-container" id="invoicesContainer">
-            <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <p>Configura tu Google Sheet para comenzar</p>
-            </div>
-        </div>
+  <div class="splash-modules" id="splashPips">
+    <div class="splash-pip on"></div>
+    <div class="splash-pip"></div>
+    <div class="splash-pip"></div>
+  </div>
+
+  <button class="btn-ingresar" onclick="enterApp()">Ingresar al sistema →</button>
+</div>
+
+<!-- ════════════════════ APP ════════════════════ -->
+<div id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="logo.png" alt="Logo">
+    </div>
+    <div class="topbar-text">
+      <div class="topbar-name">Municipalidad de Mburucuyá</div>
+      <div class="topbar-sys">Sistema de Gestión</div>
+    </div>
+    <button class="topbar-back" id="topbarBack" onclick="showSelector()" style="display:none">← Módulos</button>
+  </div>
+
+  <!-- ──── SELECTOR ──── -->
+  <div id="module-selector">
+    <div class="selector-header">
+      <h2>Seleccioná un módulo</h2>
+      <p>¿Qué sección querés gestionar hoy?</p>
     </div>
 
-    <script>
-        let invoices = [];
-        const SHEET_ID = '1_lZGb_guIKfkMszSoRigZYj6peTXL8xZCqoqKWnjCSc';
-        const SHEET_NAME = 'Deudas';
-        const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwmKBhYBdZEuvDjeVKvwBcYOgd35PHYYwG88eK-4dToeGK0UWzURIOozl_1TLsVWhiW/exec';
+    <div class="module-cards">
 
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('es-AR', {
-                style: 'currency',
-                currency: 'ARS',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
+      <div class="module-card proveedores" onclick="openModule('proveedores')">
+        <div class="card-icon">📦</div>
+        <div class="card-body">
+          <div class="card-title">Proveedores</div>
+          <div class="card-desc">Registro y seguimiento de facturas, pagos completos y parciales.</div>
+          <div class="card-tag">Cuentas a pagar</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
 
-        function formatDate(value) {
-          if (!value || value === '-') return '-';
+      <div class="module-card finanzas" onclick="openModule('finanzas')">
+        <div class="card-icon">📊</div>
+        <div class="card-body">
+          <div class="card-title">Finanzas Municipales</div>
+          <div class="card-desc">Ingresos, egresos y balance de las finanzas del municipio.</div>
+          <div class="card-tag">Presupuesto</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
 
-          // 1) Si ya es Date real
-          if (value instanceof Date) {
-            return value.toLocaleDateString('es-AR');
-          }
+      <div class="module-card caja" onclick="openModule('caja')">
+        <div class="card-icon">💵</div>
+        <div class="card-body">
+          <div class="card-title">Caja Chica</div>
+          <div class="card-desc">Saldo disponible, movimientos y autorización de gastos menores.</div>
+          <div class="card-tag">Gastos menores</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
 
-          // 2) Si viene como GViz: "Date(2026,0,14,10,35,12)"
-          if (typeof value === 'string') {
-            const m = value.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
-            if (m) {
-              const y = Number(m[1]);
-              const mo = Number(m[2]); // 0-11
-              const d = Number(m[3]);
-              const hh = Number(m[4] || 0);
-              const mm = Number(m[5] || 0);
-              const ss = Number(m[6] || 0);
-              const dt = new Date(y, mo, d, hh, mm, ss);
-              return dt.toLocaleDateString('es-AR');
-           }
-         }
+    </div>
+  </div>
 
-         // 3) Si viene como string "DD/MM/AAAA" o "DD-MM-AAAA"
-         if (typeof value === 'string') {
-           const s = value.trim();
+  <!-- ──── MÓDULO PROVEEDORES ──── -->
+  <div class="content-frame" id="frame-proveedores">
+    <div class="frame-header">
+      <button class="frame-back-btn" onclick="showSelector()">←</button>
+      <div class="frame-title">📦 Proveedores</div>
+    </div>
+    <div class="frame-body">
+      <div id="prov-loading" class="loading-msg">
+        Cargando facturas<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+      </div>
+      <div id="prov-error" class="error-msg" style="display:none"></div>
 
-           // DD/MM/YYYY o DD-MM-YYYY
-           let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-           if (m) {
-             const dd = Number(m[1]);
-             const mm = Number(m[2]);
-             const yyyy = Number(m[3]);
-             const dt = new Date(yyyy, mm - 1, dd);
-             return isNaN(dt) ? '-' : dt.toLocaleDateString('es-AR');
-         }
+      <div id="prov-content" style="display:none">
+        <div class="stats-row">
+          <div class="stat-box accent-blue">
+            <div class="stat-lbl">Deuda total</div>
+            <div class="stat-val" id="pTotalDeuda">—</div>
+          </div>
+          <div class="stat-box accent-green">
+            <div class="stat-lbl">Seleccionado hoy</div>
+            <div class="stat-val" id="pTotalHoy">—</div>
+          </div>
+          <div class="stat-box full" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="stat-lbl" style="color:#6b7a8d">Actualización</div>
+              <div style="font-size:13px;color:var(--navy);font-weight:500" id="pUpdated">—</div>
+            </div>
+            <div style="font-size:13px;color:var(--muted)" id="pPendingCount">—</div>
+          </div>
+        </div>
 
-         // YYYY-MM-DD (por si alguna vez llega así)
-         m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-         if (m) {
-           const yyyy = Number(m[1]);
-           const mm = Number(m[2]);
-           const dd = Number(m[3]);
-           const dt = new Date(yyyy, mm - 1, dd);
-           return isNaN(dt) ? '-' : dt.toLocaleDateString('es-AR');
-         }
-       }
+        <div class="section-label">Facturas pendientes</div>
+        <div class="invoices-list" id="pList"></div>
 
-       // 4) Fallback: si no lo entendemos, devolvemos tal cual (mejor que Invalid Date)
-       return String(value);
-     }
+        <div class="register-bar">
+          <button class="btn-register" id="btnRegister" onclick="registrarPagos()">Registrar pagos seleccionados</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function parseGvizDate(v) {
-          if (!v) return null;
-          if (v instanceof Date) return v;
+  <!-- ──── MÓDULO FINANZAS ──── -->
+  <div class="content-frame" id="frame-finanzas">
+    <div class="frame-header">
+      <button class="frame-back-btn" onclick="showSelector()">←</button>
+      <div class="frame-title">📊 Finanzas Municipales</div>
+    </div>
+    <div class="frame-body">
+      <div id="fin-loading" class="loading-msg">
+        Cargando datos<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+      </div>
+      <div id="fin-error" class="error-msg" style="display:none"></div>
+      <div id="fin-content" style="display:none">
 
-          if (typeof v === "string") {
-            const m = v.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
-            if (m) {
-              const y = Number(m[1]);
-              const mo = Number(m[2]);
-              const d = Number(m[3]);
-              const hh = Number(m[4] || 0);
-              const mm = Number(m[5] || 0);
-              const ss = Number(m[6] || 0);
-              return new Date(y, mo, d, hh, mm, ss);
-            }
+        <div class="finanzas-stat">
+          <div class="s-lbl">Balance actual</div>
+          <div class="s-val" id="finBalance">—</div>
+          <div class="s-sub" id="finFecha">—</div>
+        </div>
 
-            const d2 = new Date(v);
-            return isNaN(d2) ? null : d2;
-          }
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-lbl" style="color:#6b7a8d">Total ingresos</div>
+            <div class="stat-val" style="color:var(--green);font-size:18px" id="finIngresos">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-lbl" style="color:#6b7a8d">Total egresos</div>
+            <div class="stat-val" style="color:var(--red);font-size:18px" id="finEgresos">—</div>
+          </div>
+        </div>
 
-          return null;
-        }
+        <div class="fin-tabs">
+          <button class="fin-tab active" onclick="switchFinTab('movimientos', this)">Movimientos</button>
+          <button class="fin-tab" onclick="switchFinTab('proveedores-fin', this)">Proveedores</button>
+        </div>
 
-        async function registerTodayPayments() {
-          const items = invoices
-            .filter(inv => !inv.isPaid)
-            .map(inv => {
-              let monto = 0;
-              let tipo = '';
-              if (inv.selected) { monto = inv.amount; tipo = 'COMPLETO'; }
-              else if (inv.partial && (inv.partialAmount || 0) > 0) { monto = inv.partialAmount; tipo = 'PARCIAL'; }
-              else return null;
+        <div class="fin-content active" id="ftab-movimientos">
+          <div class="mov-list" id="finMovList"></div>
+        </div>
+        <div class="fin-content" id="ftab-proveedores-fin">
+          <div class="mov-list" id="finProvList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-              return {
-                  sheetRow: inv.sheetRow,
-                  proveedor: inv.supplier || '',
-                tipo,
-                monto,
-              };
-            })
-            .filter(Boolean);
+  <!-- ──── MÓDULO CAJA CHICA ──── -->
+  <div class="content-frame" id="frame-caja">
+    <div class="frame-header">
+      <button class="frame-back-btn" onclick="showSelector()">←</button>
+      <div class="frame-title">💵 Caja Chica</div>
+    </div>
+    <div class="frame-body">
+      <div id="caja-loading" class="loading-msg">
+        Cargando caja<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+      </div>
+      <div id="caja-error" class="error-msg" style="display:none"></div>
+      <div id="caja-content" style="display:none">
 
-          if (items.length === 0) {
-            alert('No hay pagos seleccionados para registrar hoy.');
-            return;
-          }
+        <div class="caja-stat">
+          <div class="s-lbl">Saldo disponible</div>
+          <div class="s-val" id="cajaSaldo">—</div>
+          <div class="s-sub" id="cajaFecha">—</div>
+        </div>
 
-          const btn = document.getElementById('registerBtn');
-          if (btn) btn.disabled = true;
+        <div class="section-label">Movimientos recientes</div>
+        <div class="mov-list" id="cajaMovList"></div>
 
-          try {
-            const payload = {
-              spreadsheetId: SHEET_ID,
-              targetSheetName: "Pagos_Hoy",
-              items
-            };
+        <div class="section-label" style="margin-top:22px">Autorizaciones pendientes</div>
+        <div class="invoices-list" id="cajaAuthList"></div>
 
-            const res = await fetch(WEBAPP_URL, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify(payload)
-            });
+        <div id="cajaTotalBar" class="total-bar" style="display:none;margin-top:12px">
+          <div>
+            <div class="total-bar-lbl">Total a autorizar</div>
+            <div class="total-bar-val" id="cajaTotalVal">—</div>
+          </div>
+        </div>
 
-            const out = await res.json();
+        <div class="register-bar" id="cajaRegisterBar" style="display:none">
+          <button class="btn-auth-register" id="btnAuthRegister" onclick="registrarAutorizaciones()">Confirmar autorizaciones</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            if (!out.ok) throw new Error(out.message || 'Error registrando pagos');
+</div><!-- /app -->
 
-            alert(`✅ ${out.message}\nSe registró correctamente lo seleccionado".`);
-            await loadInvoices();
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURACIÓN — reemplazá con los IDs reales
+// ══════════════════════════════════════════════════════
+const PROV_SHEET_ID    = 'TU_SHEET_ID_PROVEEDORES';    // mismo sheet tiene Proveedores + Finanzas
+const PROV_SHEET_NAME  = 'Proveedores';
+const FIN_MOV_SHEET    = 'Movimientos';
+const FIN_SHEET_ID     = PROV_SHEET_ID;               // mismo sheet
+const CAJA_SHEET_ID    = 'TU_SHEET_ID_CAJA_CHICA';
+const CAJA_SALDO_SHEET = 'Saldo';
+const CAJA_MOV_SHEET   = 'Movimientos';
+const CAJA_AUTH_SHEET  = 'Autorizaciones';
+const WEBAPP_URL       = 'TU_APPS_SCRIPT_WEBAPP_URL';
+const CAJA_WEBAPP_URL  = 'TU_APPS_SCRIPT_CAJA_URL';
 
-            invoices.forEach(inv => {
-              inv.selected = false;
-              inv.partial = false;
-              inv.partialAmount = 0;
-            });
+// ══════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════
+let invoices       = [];
+let autorizaciones = [];
 
-          } catch (err) {
-            console.error(err);
-            alert('❌ No se pudo registrar en el Sheet: ' + (err?.message || err));
-          } finally {
-            if (btn) btn.disabled = false;
-          }
-        }
-      
-        async function loadInvoices() {
-            const sheetId = SHEET_ID;
-            const sheetName = SHEET_NAME;
+// ══════════════════════════════════════════════════════
+//  SPLASH → APP
+// ══════════════════════════════════════════════════════
+// Animación de pips del splash
+let pip = 0;
+const pips = document.querySelectorAll('.splash-pip');
+setInterval(() => {
+  pips.forEach(p => p.classList.remove('on'));
+  pip = (pip + 1) % pips.length;
+  pips[pip].classList.add('on');
+}, 1000);
 
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('configSection').style.display = 'none';
+function enterApp() {
+  const splash = document.getElementById('splash');
+  splash.classList.add('out');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+  }, 600);
+}
 
-            try {
-                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-                const response = await fetch(url);
-                const text = await response.text();
+// ══════════════════════════════════════════════════════
+//  NAVEGACIÓN MÓDULOS
+// ══════════════════════════════════════════════════════
+function showSelector() {
+  document.getElementById('module-selector').style.display = 'block';
+  document.querySelectorAll('.content-frame').forEach(f => f.classList.remove('active'));
+  document.getElementById('topbarBack').style.display = 'none';
+}
 
-                const start = text.indexOf('(');
-                const end = text.lastIndexOf(');');
-                const json = JSON.parse(text.substring(start + 1, end));
+function openModule(name) {
+  document.getElementById('module-selector').style.display = 'none';
+  document.querySelectorAll('.content-frame').forEach(f => f.classList.remove('active'));
+  document.getElementById('frame-' + name).classList.add('active');
+  document.getElementById('topbarBack').style.display = 'block';
 
-                let lastUpdateCell = null;
+  if (name === 'proveedores' && invoices.length === 0) loadProveedores();
+  if (name === 'finanzas') loadFinanzas();
+  if (name === 'caja') loadCaja();
+}
 
-                for (let i = json.table.rows.length - 1; i >= 0; i--) {
-                  const v = json.table.rows[i]?.c?.[5]?.v;
-                  if (v) { lastUpdateCell = v; break; }
-                }
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function fmt(n) {
+  return new Intl.NumberFormat('es-AR', { style:'currency', currency:'ARS', maximumFractionDigits:0 }).format(n);
+}
+function gvizDate(v) {
+  if (!v) return null;
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)/);
+  if (m) return new Date(+m[1], +m[2], +m[3]);
+  return null;
+}
+async function fetchSheet(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const r = await fetch(url);
+  const t = await r.text();
+  const s = t.indexOf('('), e = t.lastIndexOf(');');
+  return JSON.parse(t.substring(s+1, e));
+}
 
-                const fecha = parseGvizDate(lastUpdateCell);
+// ══════════════════════════════════════════════════════
+//  MÓDULO PROVEEDORES
+// ══════════════════════════════════════════════════════
+async function loadProveedores() {
+  document.getElementById('prov-loading').style.display = 'block';
+  document.getElementById('prov-content').style.display = 'none';
+  document.getElementById('prov-error').style.display   = 'none';
+  try {
+    const json = await fetchSheet(PROV_SHEET_ID, PROV_SHEET_NAME);
+    const rows = json.table.rows;
+    const firstCell = (rows[0]?.c?.[0]?.v ?? '').toString().toLowerCase();
+    const dataRows  = firstCell === 'columna 1' ? rows.slice(1) : rows;
 
-                document.getElementById('sheetUpdate').textContent =
-                  fecha
-                    ? 'Última actualización: ' + fecha.toLocaleString('es-AR', {
-                        hour12: false,
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })
-                    : 'Última actualización: —';
+    let lastUpdate = null;
+    for (let i = rows.length - 1; i >= 0; i--) {
+      if (rows[i]?.c?.[5]?.v) { lastUpdate = rows[i].c[5].v; break; }
+    }
 
-                const rows = json.table.rows;
+    invoices = dataRows
+      .map((r, i) => ({
+        id: i+1, sheetRow: i+2,
+        supplier: r.c?.[0]?.v || '',
+        amount:   parseFloat(r.c?.[1]?.v || 0),
+        issueDate: r.c?.[2]?.f || r.c?.[2]?.v || '—',
+        payDate:   r.c?.[3]?.f || r.c?.[3]?.v || '—',
+        estado: (r.c?.[6]?.v || '').toString().trim(),
+        isPaid: r.c?.[4]?.v === true,
+        selected:false, partial:false, partialAmount:0
+      }))
+      .filter(r => r.supplier || r.amount);
 
-               // rows = json.table.rows;
+    const fd = gvizDate(lastUpdate);
+    document.getElementById('pUpdated').textContent = fd
+      ? fd.toLocaleString('es-AR',{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+      : '—';
 
-               // Detecta si la primera "fila" es el encabezado automático "Columna 1"
-               const firstCell = (rows[0]?.c?.[0]?.v ?? '').toString().trim().toLowerCase();
-               const isAutoHeader = firstCell === 'columna 1';
+    renderInvoices();
+    updateProvStats();
+    document.getElementById('prov-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('prov-error').textContent = '❌ No se pudo cargar. Verificá que la hoja sea pública.';
+    document.getElementById('prov-error').style.display = 'block';
+  } finally {
+    document.getElementById('prov-loading').style.display = 'none';
+  }
+}
 
-               // Si hay encabezado automático, NO lo contamos como proveedor real
-               const rowsForData = isAutoHeader ? rows.slice(1) : rows;
-               
-               // IMPORTANTE: baseRow debe coincidir con la fila REAL del sheet donde empiezan datos
-               // En tu caso: fila 1 = encabezado, fila 2 = primer proveedor              
-               const baseRow = 2;
+function renderInvoices() {
+  const list = document.getElementById('pList');
+  if (!invoices.length) { list.innerHTML = '<div class="empty-msg">Sin facturas registradas</div>'; return; }
+  list.innerHTML = invoices.map(inv => `
+    <div class="invoice-item ${inv.selected||inv.partial?'selected':''} ${inv.isPaid?'paid':''}">
+      <div class="inv-row1">
+        <div class="inv-supplier">${inv.supplier}</div>
+        <span class="inv-badge ${inv.isPaid?'badge-paid':'badge-pending'}">${inv.isPaid?'Pagado':'Pendiente'}</span>
+      </div>
+      <div class="inv-amount">${fmt(inv.amount)}</div>
+      <div class="inv-dates">
+        <span>📅 ${inv.issueDate}</span>
+        <span>✅ ${inv.payDate}</span>
+      </div>
+      ${!inv.isPaid ? `
+        <div class="inv-actions">
+          <button class="btn-inv ${inv.selected?'active':''}" onclick="toggleInv(${inv.id},'full')" ${inv.partial?'disabled':''}>
+            ${inv.selected?'✓ Completo':'Pago completo'}
+          </button>
+          <button class="btn-inv ${inv.partial?'active':''}" onclick="toggleInv(${inv.id},'partial')" ${inv.selected?'disabled':''}>
+            ${inv.partial?'✓ Parcial':'Pago parcial'}
+          </button>
+        </div>
+        ${inv.partial ? `<input type="number" class="partial-input" placeholder="Monto parcial"
+          value="${inv.partialAmount||''}" max="${inv.amount}"
+          oninput="updatePartial(${inv.id},this.value)">` : ''}
+      ` : ''}
+    </div>
+  `).join('');
+}
 
-               // Indexamos con fila real de Sheets
-               const indexed = rowsForData.map((r, i) => ({ r, sheetRow: baseRow + i }));
+function toggleInv(id, type) {
+  const inv = invoices.find(i => i.id === id);
+  if (!inv || inv.isPaid) return;
+  if (type === 'full')    { inv.selected = !inv.selected; inv.partial = false; inv.partialAmount = 0; }
+  else                    { inv.partial  = !inv.partial;  inv.selected = false; if (!inv.partial) inv.partialAmount = 0; }
+  renderInvoices(); updateProvStats();
+}
+function updatePartial(id, val) {
+  const inv = invoices.find(i => i.id === id);
+  if (inv) { inv.partialAmount = Math.min(parseFloat(val)||0, inv.amount); updateProvStats(); }
+}
+function updateProvStats() {
+  const pending = invoices.filter(i => !i.isPaid);
+  const total   = pending.reduce((s,i) => s + i.amount, 0);
+  const hoy     = invoices.reduce((s,i) => s + (i.selected?i.amount : i.partial?i.partialAmount : 0), 0);
+  document.getElementById('pTotalDeuda').textContent   = fmt(total);
+  document.getElementById('pTotalHoy').textContent     = fmt(hoy);
+  document.getElementById('pPendingCount').textContent = `${pending.length} pendiente${pending.length!==1?'s':''}`;
+}
 
-               // filtramos vacías pero conservando sheetRow
-               const dataIndexed = indexed.filter(({ r }) => {
-                 const supplier = (r.c?.[0]?.v ?? '').toString().trim();
-                 const amount = r.c?.[1]?.v;
-                 return supplier !== '' || (amount != null && amount !== '');
-               });
+async function registrarPagos() {
+  const items = [];
+  invoices.forEach(inv => {
+    if (inv.selected) items.push({sheetRow:inv.sheetRow, supplier:inv.supplier, tipo:'COMPLETO', monto:inv.amount});
+    else if (inv.partial && inv.partialAmount > 0)
+      items.push({sheetRow:inv.sheetRow, supplier:inv.supplier, tipo:'PARCIAL', monto:inv.partialAmount});
+  });
+  if (!items.length) { alert('⚠️ No hay pagos seleccionados.'); return; }
+  const btn = document.getElementById('btnRegister');
+  btn.disabled = true;
+  try {
+    const res  = await fetch(WEBAPP_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({spreadsheetId:PROV_SHEET_ID, targetSheetName:'Pagos_Hoy', items}) });
+    const out  = await res.json();
+    if (!out.ok) throw new Error(out.message||'Error');
+    alert(`✅ ${out.message}`);
+    await loadProveedores();
+  } catch(e) { alert('❌ No se pudo registrar: ' + (e?.message||e)); }
+  finally { btn.disabled = false; }
+}
 
-               invoices = dataIndexed.map(({ r: row, sheetRow }, idx) => {
-                 const isPaid = row.c?.[4]?.v === true;                  // E
-                 const estado = (row.c?.[6]?.v ?? '').toString().trim(); // G
-                 return {
-                   id: idx + 1,
-                   sheetRow,
-                   supplier: row.c?.[0]?.v || '',
-                   amount: parseFloat(row.c?.[1]?.v || 0),
-                   issueDate: row.c?.[2]?.f || row.c?.[2]?.v || '-',
-                   payDate: row.c?.[3]?.f || row.c?.[3]?.v || '-',
-                   estado,
-                   isPaid,
-                   selected: false,
-                   partial: false,
-                   partialAmount: 0
-                 };
-               });
+// ══════════════════════════════════════════════════════
+//  MÓDULO FINANZAS
+// ══════════════════════════════════════════════════════
+async function loadFinanzas() {
+  document.getElementById('fin-loading').style.display = 'block';
+  document.getElementById('fin-content').style.display = 'none';
+  document.getElementById('fin-error').style.display   = 'none';
+  try {
+    // Movimientos y Proveedores viven en el mismo sheet que proveedores
+    const [movJson, provJson] = await Promise.all([
+      fetchSheet(FIN_SHEET_ID, FIN_MOV_SHEET),
+      fetchSheet(FIN_SHEET_ID, PROV_SHEET_NAME)
+    ]);
 
-                document.getElementById('configSection').style.display = 'none';
-                document.getElementById('stats').style.display = 'block';
-                renderInvoices();
-                updateStats();
+    // Movimientos
+    let ingresos = 0, egresos = 0;
+    const movRows = movJson.table.rows;
+    let movHTML = '';
+    movRows.forEach(r => {
+      const fecha = r.c?.[0]?.f || r.c?.[0]?.v || '';
+      const tipo  = (r.c?.[1]?.v || '').toString().trim();
+      const desc  = (r.c?.[2]?.v || '').toString().trim();
+      const monto = parseFloat(r.c?.[3]?.v || 0);
+      if (!desc && !monto) return;
+      const isIng = tipo.toLowerCase() === 'ingreso';
+      if (isIng) ingresos += monto; else egresos += monto;
+      movHTML += `
+        <div class="mov-item">
+          <div class="mov-row">
+            <div class="mov-desc">${desc||'—'}</div>
+            <div class="mov-amount" style="color:${isIng?'var(--green)':'var(--red)'}">
+              ${isIng?'+':'−'}${fmt(monto)}
+            </div>
+          </div>
+          <div class="mov-date">📅 ${fecha||'—'} · <span style="font-weight:600">${tipo}</span></div>
+        </div>`;
+    });
 
-            } catch (err) {
-                showError('Error al cargar. Verifica que la hoja sea pública y los datos sean correctos.');
-                console.error(err);
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
+    // Proveedores en la pestaña finanzas
+    const provRows = provJson.table.rows;
+    const firstCell = (provRows[0]?.c?.[0]?.v ?? '').toString().toLowerCase();
+    const dataRows  = firstCell === 'columna 1' ? provRows.slice(1) : provRows;
+    let provHTML = '';
+    dataRows.forEach(r => {
+      const name  = (r.c?.[0]?.v || '').toString();
+      const monto = parseFloat(r.c?.[1]?.v || 0);
+      const paid  = r.c?.[4]?.v === true;
+      if (!name) return;
+      provHTML += `
+        <div class="mov-item">
+          <div class="mov-row">
+            <div class="mov-desc">${name}</div>
+            <div class="mov-amount" style="color:${paid?'var(--green)':'var(--red)'}">${fmt(monto)}</div>
+          </div>
+          <div class="mov-date">${paid?'✅ Pagado':'⏳ Pendiente'}</div>
+        </div>`;
+    });
 
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
+    document.getElementById('finBalance').textContent  = fmt(ingresos - egresos);
+    document.getElementById('finFecha').textContent    = 'Balance: ingresos − egresos';
+    document.getElementById('finIngresos').textContent = fmt(ingresos);
+    document.getElementById('finEgresos').textContent  = fmt(egresos);
+    document.getElementById('finMovList').innerHTML    = movHTML  || '<div class="empty-msg">Sin movimientos</div>';
+    document.getElementById('finProvList').innerHTML   = provHTML || '<div class="empty-msg">Sin proveedores</div>';
+    document.getElementById('fin-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('fin-error').textContent = '❌ No se pudo cargar. Verificá que la hoja sea pública.';
+    document.getElementById('fin-error').style.display = 'block';
+  } finally {
+    document.getElementById('fin-loading').style.display = 'none';
+  }
+}
 
-        function toggleInvoice(id, type) {
-            const invoice = invoices.find(inv => inv.id === id);
-            if (!invoice || invoice.isPaid) return;
+function switchFinTab(name, btn) {
+  document.querySelectorAll('.fin-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.fin-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('ftab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
 
-            if (type === 'full') {
-                invoice.selected = !invoice.selected;
-                invoice.partial = false;
-                invoice.partialAmount = 0;
-            } else if (type === 'partial') {
-                invoice.partial = !invoice.partial;
-                invoice.selected = false;
-                if (!invoice.partial) {
-                    invoice.partialAmount = 0;
-                }
-            }
+// ══════════════════════════════════════════════════════
+//  MÓDULO CAJA CHICA
+// ══════════════════════════════════════════════════════
+async function loadCaja() {
+  document.getElementById('caja-loading').style.display = 'block';
+  document.getElementById('caja-content').style.display = 'none';
+  document.getElementById('caja-error').style.display   = 'none';
+  document.getElementById('cajaRegisterBar').style.display = 'none';
+  try {
+    const [saldoJson, movJson, authJson] = await Promise.all([
+      fetchSheet(CAJA_SHEET_ID, CAJA_SALDO_SHEET),
+      fetchSheet(CAJA_SHEET_ID, CAJA_MOV_SHEET),
+      fetchSheet(CAJA_SHEET_ID, CAJA_AUTH_SHEET)
+    ]);
 
-            renderInvoices();
-            updateStats();
-        }
+    // Saldo
+    let saldo = 0, lastUpd = null;
+    saldoJson.table.rows.forEach(r => {
+      saldo += parseFloat(r.c?.[0]?.v || 0);
+      if (!lastUpd && r.c?.[1]?.v) lastUpd = r.c[1].v;
+    });
 
-        function updatePartialAmount(id, value) {
-            const invoice = invoices.find(inv => inv.id === id);
-            if (!invoice) return;
+    // Movimientos
+    let movHTML = '';
+    movJson.table.rows.forEach(r => {
+      const fecha = r.c?.[0]?.f || r.c?.[0]?.v || '';
+      const tipo  = (r.c?.[1]?.v || '').toString().trim();
+      const desc  = (r.c?.[2]?.v || '').toString().trim();
+      const monto = parseFloat(r.c?.[3]?.v || 0);
+      if (!desc && !monto) return;
+      const isIng = tipo.toLowerCase() === 'ingreso';
+      movHTML += `
+        <div class="mov-item">
+          <div class="mov-row">
+            <div class="mov-desc">${desc||'—'}</div>
+            <div class="mov-amount" style="color:${isIng?'var(--green)':'var(--red)'}">
+              ${isIng?'+':'−'}${fmt(monto)}
+            </div>
+          </div>
+          <div class="mov-date">📅 ${fecha||'—'} · <span style="font-weight:600">${tipo}</span></div>
+        </div>`;
+    });
 
-            const amount = parseFloat(value) || 0;
-            invoice.partialAmount = Math.min(amount, invoice.amount);
-            updateStats();
-        }
+    // Autorizaciones
+    autorizaciones = authJson.table.rows
+      .map((r,i) => ({
+        id:i+1, sheetRow:i+2,
+        beneficiario: (r.c?.[0]?.v||'').toString().trim(),
+        monto:        parseFloat(r.c?.[1]?.v||0),
+        concepto:     (r.c?.[2]?.v||'').toString().trim(),
+        autorizado:   r.c?.[3]?.v === true,
+        selected:false, partial:false, partialAmount:0
+      }))
+      .filter(a => a.beneficiario || a.monto);
 
-        function renderInvoices() {
-            const container = document.getElementById('invoicesContainer');
-            
-            if (invoices.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📋</div>
-                        <p>No hay facturas para mostrar</p>
-                    </div>
-                `;
-                return;
-            }
+    const fdCaja = gvizDate(lastUpd);
+    document.getElementById('cajaSaldo').textContent = fmt(saldo);
+    document.getElementById('cajaFecha').textContent = fdCaja
+      ? fdCaja.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})
+      : '—';
+    document.getElementById('cajaMovList').innerHTML = movHTML || '<div class="empty-msg">Sin movimientos</div>';
 
-            container.innerHTML = invoices.map(inv => `
-                <div class="invoice-item ${inv.selected || inv.partial ? 'selected' : ''} ${inv.isPaid ? 'paid' : ''}">
-                    <div class="invoice-header">
-                      <div class="invoice-supplier">${inv.supplier}</div>
-                      ${(!inv.isPaid && inv.estado?.toUpperCase() === 'SALDO PENDIENTE')
-                        ? `<span class="invoice-badge badge-pending">SALDO PENDIENTE</span>`
-                        : ''
-                      }
-                    </div>
-                    
-                    <div class="invoice-amount">${formatCurrency(inv.amount)}</div>
-                    
-                    <div class="invoice-details">
-                        <div>📅 Emisión: ${formatDate(inv.issueDate)}</div>
-                        <div>✅ Ultimo Pago: ${formatDate(inv.payDate)}</div>
-                    </div>
-                    
-                    ${!inv.isPaid ? `
-                        <div class="invoice-actions">
-                            <button class="btn-mark ${inv.selected ? 'active' : ''}" 
-                                    onclick="toggleInvoice(${inv.id}, 'full')"
-                                    ${inv.partial ? 'disabled' : ''}>
-                                ${inv.selected ? '✓ Completo' : 'Pago Completo'}
-                            </button>
-                            <button class="btn-mark ${inv.partial ? 'active' : ''}" 
-                                    onclick="toggleInvoice(${inv.id}, 'partial')"
-                                    ${inv.selected ? 'disabled' : ''}>
-                                ${inv.partial ? '✓ Parcial' : 'Pago Parcial'}
-                            </button>
-                        </div>
-                        ${inv.partial ? `
-                            <input type="number" 
-                                   class="partial-input" 
-                                   placeholder="Monto a pagar"
-                                   value="${inv.partialAmount || ''}"
-                                   max="${inv.amount}"
-                                   oninput="updatePartialAmount(${inv.id}, this.value)">
-                        ` : ''}
-                    ` : ''}
-                </div>
-            `).join('');
-        }
+    renderAutorizaciones();
+    document.getElementById('caja-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('caja-error').textContent = '❌ No se pudo cargar. Verificá que las hojas sean públicas.';
+    document.getElementById('caja-error').style.display = 'block';
+  } finally {
+    document.getElementById('caja-loading').style.display = 'none';
+  }
+}
 
-        function updateStats() {
-            const pending = invoices.filter(inv => !inv.isPaid);
-            const totalDebt = pending.reduce((sum, inv) => sum + inv.amount, 0);
-            
-            const todayTotal = invoices.reduce((sum, inv) => {
-                if (inv.selected) return sum + inv.amount;
-                if (inv.partial) return sum + inv.partialAmount;
-                return sum;
-            }, 0);
-
-            document.getElementById('totalDebt').textContent = formatCurrency(totalDebt);
-            document.getElementById('todayTotal').textContent = formatCurrency(todayTotal);
-        }
-
-        window.addEventListener('load', () => {
-            loadInvoices();
-        });
-    </script>
+function renderAutorizaciones() {
+  const list = document.getElementById('cajaAuthList');
+  if (!autorizaciones.length) { list.innerHTML = '<div class="empty-msg">✅ Sin pendientes de autorización</div>'; return; }
+  list.innerHTML = autorizaciones.map(a => `
+    <div class="auth-item ${a.autorizado?'autorizado':''} ${(a.selected||a.partial)?'selected-auth':''}">
+      <div class="auth-beneficiary">${a.beneficiario||'—'}</div>
+      ${a.concepto?`<div class="auth-concepto">📝 ${a.concepto}</div>`:''}
+      <div class="auth-amount">${fmt(a.monto)}</div>
+      ${!a.autorizado ? `
+        <div class="inv-actions">
+          <button class="btn-auth ${a.selected?'active':''}" onclick="toggleAuth(${a.id},'full')" ${a.partial?'disabled':''}>
+            ${a.selected?'✓ Total':'Autorizar total'}
+          </button>
+          <button class="btn-auth ${a.partial?'active':''}" onclick="toggleAuth(${a.id},'partial')" ${a.selected?'disabled':''}>
+            ${a.partial?'✓ Parcial':'Autorizar parcial'}
+          </button>
+        </div>
+        ${a.partial ? `<input type="number" class="partial-input" style="border-color:var(--red)"
+          placeholder="Monto a autorizar" value="${a.partialAmount||''}" max="${a.monto}"
+          oninput="updateAuthPartial(${a.id},this.value)">` : ''}
+      ` : `<div style="font-size:12px;color:var(--green);font-weight:600;margin-top:6px">✅ Ya autorizado</div>`}
+    </div>
+  `).join('');
+  updateAuthTotal();
+}
+function toggleAuth(id, type) {
+  const a = autorizaciones.find(x => x.id === id);
+  if (!a || a.autorizado) return;
+  if (type === 'full')  { a.selected = !a.selected; a.partial = false; a.partialAmount = 0; }
+  else                  { a.partial  = !a.partial;  a.selected = false; if (!a.partial) a.partialAmount = 0; }
+  renderAutorizaciones();
+}
+function updateAuthPartial(id, val) {
+  const a = autorizaciones.find(x => x.id === id);
+  if (a) { a.partialAmount = Math.min(parseFloat(val)||0, a.monto); updateAuthTotal(); }
+}
+function updateAuthTotal() {
+  const total = autorizaciones.reduce((s,a) => s + (a.selected?a.monto : a.partial?a.partialAmount : 0), 0);
+  const hay   = autorizaciones.some(a => a.selected || (a.partial && a.partialAmount > 0));
+  document.getElementById('cajaTotalBar').style.display  = hay ? 'flex' : 'none';
+  document.getElementById('cajaRegisterBar').style.display = hay ? 'block' : 'none';
+  document.getElementById('cajaTotalVal').textContent     = fmt(total);
+}
+async function registrarAutorizaciones() {
+  const items = [];
+  autorizaciones.forEach(a => {
+    if (a.selected)                  items.push({sheetRow:a.sheetRow, beneficiario:a.beneficiario, concepto:a.concepto, tipo:'TOTAL',   monto:a.monto});
+    else if (a.partial && a.partialAmount > 0) items.push({sheetRow:a.sheetRow, beneficiario:a.beneficiario, concepto:a.concepto, tipo:'PARCIAL', monto:a.partialAmount});
+  });
+  if (!items.length) { alert('⚠️ Sin autorizaciones seleccionadas.'); return; }
+  const btn = document.getElementById('btnAuthRegister');
+  btn.disabled = true;
+  try {
+    const res = await fetch(CAJA_WEBAPP_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({spreadsheetId:CAJA_SHEET_ID, accion:'autorizarCaja', items}) });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.message||'Error');
+    alert(`✅ ${out.message}`);
+    await loadCaja();
+  } catch(e) { alert('❌ No se pudo registrar: ' + (e?.message||e)); }
+  finally { btn.disabled = false; }
+}
+</script>
 </body>
 </html>
-
